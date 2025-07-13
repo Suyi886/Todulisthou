@@ -11,6 +11,7 @@ const taskRoutes = require('./routes/task.routes');
 const categoryRoutes = require('./routes/category.routes');
 const reminderRoutes = require('./routes/reminder.routes');
 const attachmentRoutes = require('./routes/attachment.routes');
+const gameRechargeRoutes = require('./routes/gameRecharge.routes');
 
 // 初始化Express应用
 const app = express();
@@ -22,6 +23,7 @@ const corsOptions = {
     'https://nlxyvnovonfl.sealosbja.site',
     'http://localhost:3000',
     'http://localhost:3001',
+    'http://localhost:3002',
     'http://localhost:8080'
   ],
   credentials: true,
@@ -49,6 +51,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/attachments', attachmentRoutes);
+app.use('/api/game-recharge', gameRechargeRoutes);
 
 // 错误处理中间件
 app.use(errorHandler);

@@ -1,5 +1,5 @@
 const { sequelize } = require('../config/db');
-const { User, Task, Category, TaskCategory, Reminder, Attachment } = require('../models');
+const { User, Task, Category, TaskCategory, Reminder, Attachment, GameRechargeOrder, MerchantConfig, CallbackLog, CountryCode } = require('../models');
 
 /**
  * 初始化数据库
@@ -36,7 +36,29 @@ async function initDatabase() {
       user_id: testUser.id
     })));
 
-    console.log('初始数据创建成功');
+    // 创建游戏充值相关初始数据
+    // 创建商户配置
+    await MerchantConfig.bulkCreate([
+      {
+        merchant_id: 'merchant_001',
+        api_key: 'api_key_001',
+        secret_key: 'secret_key_001',
+        callback_url: 'https://example.com/callback',
+        status: 1
+      }
+    ]);
+
+    // 创建国家编号配置
+    await CountryCode.bulkCreate([
+      { code: 'CN', name: '中国', currency: 'CNY', status: 1 },
+      { code: 'US', name: '美国', currency: 'USD', status: 1 },
+      { code: 'JP', name: '日本', currency: 'JPY', status: 1 },
+      { code: 'KR', name: '韩国', currency: 'KRW', status: 1 },
+      { code: 'TH', name: '泰国', currency: 'THB', status: 1 }
+    ]);
+
+    console.log('Todo List初始数据创建成功');
+    console.log('游戏充值平台初始数据创建成功');
     process.exit(0);
   } catch (error) {
     console.error('数据库初始化失败:', error);
