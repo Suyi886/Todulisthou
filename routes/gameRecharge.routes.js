@@ -67,4 +67,67 @@ router.get('/merchants', gameRechargeController.getMerchants);
  */
 router.get('/countries', gameRechargeController.getCountries);
 
+/**
+ * @route GET /api/game-recharge/stats
+ * @desc 获取统计数据
+ * @access Public
+ */
+router.get('/stats', gameRechargeController.getStats);
+
+/**
+ * @route GET /api/game-recharge/stats/order-trends
+ * @desc 获取订单趋势数据
+ * @access Public
+ */
+router.get('/stats/order-trends', gameRechargeController.getOrderTrends);
+
+/**
+ * @route GET /api/game-recharge/stats/order-trend
+ * @desc 获取订单趋势数据（前端兼容路径）
+ * @access Public
+ */
+router.get('/stats/order-trend', gameRechargeController.getOrderTrends);
+
+/**
+ * @route GET /api/game-recharge/stats/order-status-distribution
+ * @desc 获取订单状态分布
+ * @access Public
+ */
+router.get('/stats/order-status-distribution', gameRechargeController.getOrderStatusDistribution);
+
+/**
+ * @route GET /api/game-recharge/stats/order-status
+ * @desc 获取订单状态分布（前端兼容路径）
+ * @access Public
+ */
+router.get('/stats/order-status', gameRechargeController.getOrderStatusDistribution);
+
+/**
+ * @route GET /api/game-recharge/stats/country-distribution
+ * @desc 获取国家分布数据
+ * @access Public
+ */
+router.get('/stats/country-distribution', gameRechargeController.getCountryDistribution);
+
+/**
+ * @route GET /api/game-recharge/stats/merchant-ranking
+ * @desc 获取商户排行
+ * @access Public
+ */
+router.get('/stats/merchant-ranking', gameRechargeController.getMerchantRanking);
+
+/**
+ * @route GET /api/game-recharge/orders
+ * @desc 获取订单列表（分页）
+ * @access Public
+ */
+router.get('/orders', gameRechargeController.getOrders);
+
+/**
+ * @route GET /api/game-recharge/orders/recent
+ * @desc 获取最近订单
+ * @access Public
+ */
+router.get('/orders/recent', gameRechargeController.getRecentOrders);
+
 module.exports = router;
