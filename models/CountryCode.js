@@ -34,7 +34,7 @@ const CountryCode = sequelize.define('CountryCode', {
   tableName: 'country_codes',
   timestamps: true,
   createdAt: 'created_at',
-  updatedAt: false,
+  updatedAt: 'updated_at',
   indexes: [
     {
       unique: true,
