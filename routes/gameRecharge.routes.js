@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const router = express.Router();
-const gameRechargeController = require('../controllers/gameRecharge.controller');
+// const gameRechargeController = require('../controllers/gameRecharge.controller'); // 已删除，功能分离到各个专门控制器
 const merchantController = require('../controllers/gameRecharge/merchant.controller');
 const countryController = require('../controllers/gameRecharge/country.controller');
 const statsController = require('../controllers/gameRecharge/stats.controller');
@@ -41,21 +41,21 @@ const upload = multer({
  * @desc 创建订单
  * @access Public
  */
-router.post('/createOrderMain', gameRechargeController.createOrderMain);
+router.post('/createOrderMain', orderController.createOrderMain);
 
 /**
  * @route POST /api/game-recharge/submitOrder
  * @desc 提交订单凭证
  * @access Public
  */
-router.post('/submitOrder', upload.single('callback_img'), gameRechargeController.submitOrder);
+router.post('/submitOrder', upload.single('callback_img'), orderController.submitOrderWithFile);
 
 /**
  * @route POST /api/game-recharge/queryOrder
  * @desc 查询订单状态
  * @access Public
  */
-router.post('/queryOrder', gameRechargeController.queryOrder);
+router.post('/queryOrder', orderController.queryOrderByPost);
 
 /**
  * @route GET /api/game-recharge/merchants
@@ -146,7 +146,7 @@ router.get('/countries/:id', countryController.getCountryById);
  * @desc 获取统计数据
  * @access Public
  */
-router.get('/stats', gameRechargeController.getStats);
+router.get('/stats', statsController.getOverview);
 
 /**
  * @route GET /api/game-recharge/stats/order-trends
@@ -219,6 +219,13 @@ router.get('/stats/country', statsController.getCountryStats);
 router.get('/orders', orderController.getOrders);
 
 /**
+ * @route GET /api/game-recharge/orders/recent
+ * @desc 获取最近订单
+ * @access Public
+ */
+router.get('/orders/recent', orderController.getRecentOrders);
+
+/**
  * @route POST /api/game-recharge/orders
  * @desc 创建充值订单
  * @access Public
@@ -259,12 +266,5 @@ router.delete('/orders/:order_id', orderController.deleteOrder);
  * @access Public
  */
 router.post('/orders/batch', orderController.batchProcessOrders);
-
-/**
- * @route GET /api/game-recharge/orders/recent
- * @desc 获取最近订单
- * @access Public
- */
-router.get('/orders/recent', gameRechargeController.getRecentOrders);
 
 module.exports = router;

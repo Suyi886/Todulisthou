@@ -39,7 +39,7 @@ exports.getOrderTrend = async (req, res, next) => {
       SELECT 
         DATE_FORMAT(created_at, '${dateFormat}') as date,
         COUNT(*) as order_count,
-        SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as completed_amount,
+        SUM(CASE WHEN status = 2 THEN amount ELSE 0 END) as completed_amount,
         SUM(amount) as total_amount
       FROM game_recharge_orders 
       WHERE created_at >= ? AND created_at <= ?
@@ -182,15 +182,15 @@ exports.getMerchantStats = async (req, res, next) => {
     
     const query = `
       SELECT 
-        merchant_id,
+        api_key as merchant_id,
         COUNT(*) as order_count,
-        SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as completed_amount,
+        SUM(CASE WHEN status = 2 THEN amount ELSE 0 END) as completed_amount,
         SUM(amount) as total_amount,
-        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_count,
-        COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_count
+        COUNT(CASE WHEN status = 2 THEN 1 END) as completed_count,
+        COUNT(CASE WHEN status IN (20, 40, 50) THEN 1 END) as failed_count
       FROM game_recharge_orders 
       WHERE created_at >= ? AND created_at <= ?
-      GROUP BY merchant_id
+      GROUP BY api_key
       ORDER BY completed_amount DESC
     `;
     
@@ -238,9 +238,9 @@ exports.getCountryStats = async (req, res, next) => {
       SELECT 
         code as country_code,
         COUNT(*) as order_count,
-        SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as completed_amount,
+        SUM(CASE WHEN status = 2 THEN amount ELSE 0 END) as completed_amount,
         SUM(amount) as total_amount,
-        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_count
+        COUNT(CASE WHEN status = 2 THEN 1 END) as completed_count
       FROM game_recharge_orders 
       WHERE created_at >= ? AND created_at <= ?
       GROUP BY code
@@ -289,12 +289,12 @@ exports.getOverview = async (req, res, next) => {
     const query = `
       SELECT 
         COUNT(*) as total_orders,
-        SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as completed_amount,
+        SUM(CASE WHEN status = 2 THEN amount ELSE 0 END) as completed_amount,
         SUM(amount) as total_amount,
-        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_orders,
-        COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_orders,
-        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_orders,
-        COUNT(DISTINCT merchant_id) as active_merchants,
+        COUNT(CASE WHEN status = 2 THEN 1 END) as completed_orders,
+        COUNT(CASE WHEN status IN (20, 40, 50) THEN 1 END) as failed_orders,
+        COUNT(CASE WHEN status IN (0, 1) THEN 1 END) as pending_orders,
+        COUNT(DISTINCT api_key) as active_merchants,
         COUNT(DISTINCT code) as active_countries
       FROM game_recharge_orders 
       WHERE created_at >= ? AND created_at <= ?
