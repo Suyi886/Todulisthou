@@ -100,6 +100,20 @@ router.put('/merchants/:id/status', merchantController.toggleMerchantStatus);
 router.put('/merchants/:id/regenerate-key', merchantController.regenerateMerchantKeys);
 
 /**
+ * @route PUT /api/game-recharge/merchants/:id/regenerate-api-key
+ * @desc 重新生成商户API密钥
+ * @access Public
+ */
+router.put('/merchants/:id/regenerate-api-key', merchantController.regenerateApiKey);
+
+/**
+ * @route PUT /api/game-recharge/merchants/:id/regenerate-secret-key
+ * @desc 重新生成商户签名密钥
+ * @access Public
+ */
+router.put('/merchants/:id/regenerate-secret-key', merchantController.regenerateSecretKey);
+
+/**
  * @route GET /api/game-recharge/countries
  * @desc 获取国家编号列表
  * @access Public

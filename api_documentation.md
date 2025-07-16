@@ -2,14 +2,15 @@
 
 ## 基础信息
 
-- **基础URL**: `http://your-domain.com/api/game-recharge`
-- **所有接口都需要进行签名验证**
+- **基础URL**: `http://localhost:3000/api/game-recharge`
+- **所有对接接口都需要进行签名验证**
 - **签名算法**: MD5
+- **Content-Type**: `application/json` (除文件上传接口外)
 
 ## 签名规则
 
 1. 将所有请求参数的参数名，以ASCII码进行由小到大的排序
-2. 将排序后的参数，以键值对方式组成字符串，最后拼接`&key=API_SECRET`
+2. 将排序后的参数，以键值对方式组成字符串，最后拼接`&key=SECRET_KEY`
 3. 将第2步的字符串，进行MD5，即可得到sign参数值（32位小写）
 
 **示例**:
@@ -203,8 +204,10 @@ formData2.append('sign', 'calculated_sign');
 | 0 | 待提交凭证 |
 | 1 | 已提交凭证，待审核 |
 | 2 | 审核通过，充值成功 |
-| 3 | 审核拒绝 |
-| 4 | 订单取消 |
+| 10 | 充值成功（系统状态） |
+| 20 | 失败(未收到资金) |
+| 40 | 失败(资金冻结) |
+| 50 | 失败(资金返回) |
 
 ## 4. 获取国家列表接口
 
@@ -214,7 +217,7 @@ formData2.append('sign', 'calculated_sign');
 - **Content-Type**: application/json
 
 ### 请求参数
-无需参数
+无需参数（返回所有启用的国家）
 
 ### 响应示例
 ```json
@@ -240,31 +243,75 @@ formData2.append('sign', 'calculated_sign');
 }
 ```
 
-## 5. 获取商户列表接口（管理接口）
+## 5. 回调通知接口
 
-### 接口信息
-- **URL**: `/api/game-recharge/merchants`
-- **请求方式**: GET
-- **Content-Type**: application/json
+### 接口说明
+当订单状态发生变化时（如审核通过、审核拒绝等），系统会向商户提供的 `notify_url` 发送POST请求进行异步通知。
 
-### 请求参数
-无需参数
+### 回调参数
 
-### 响应示例
+| 参数名 | 类型 | 描述 |
+|--------|------|------|
+| order_id | string | 商户订单号 |
+| platform_order_id | string | 系统订单号 |
+| amount | number | 订单金额 |
+| actual_amount | number | 实际到账金额 |
+| status | number | 订单状态 |
+| callback_time | string | 回调时间 |
+| sign | string | 签名 |
+
+### 回调示例
 ```json
 {
-    "status": "success",
-    "data": [
-        {
-            "id": 1,
-            "merchant_id": "MERCHANT_001",
-            "api_key": "your_api_key",
-            "status": 1,
-            "created_at": "2024-01-01T10:00:00.000Z"
-        }
-    ]
+    "order_id": "SSDOINE2389743209",
+    "platform_order_id": "P1703241400119184490",
+    "amount": 1000.00,
+    "actual_amount": 1000.00,
+    "status": 2,
+    "callback_time": "2024-01-01T10:10:00.000Z",
+    "sign": "calculated_sign"
 }
 ```
+
+### 回调响应
+商户接收到回调通知后，需要返回以下格式的响应：
+
+```json
+// 成功处理
+{
+    "status": "success"
+}
+
+// 处理失败
+{
+    "status": "error",
+    "msg": "处理失败原因"
+}
+```
+
+## 6. 管理接口
+
+### 6.1 获取商户列表
+- **URL**: `/api/game-recharge/merchants`
+- **请求方式**: GET
+- **说明**: 获取所有商户配置信息（管理后台使用）
+
+### 6.2 获取订单列表
+- **URL**: `/api/game-recharge/orders`
+- **请求方式**: GET
+- **参数**: page, limit, status, code, api_key等
+- **说明**: 分页获取订单列表（管理后台使用）
+
+### 6.3 获取最近订单
+- **URL**: `/api/game-recharge/orders/recent`
+- **请求方式**: GET
+- **参数**: limit（默认10）
+- **说明**: 获取最近的订单记录
+
+### 6.4 获取统计数据
+- **URL**: `/api/game-recharge/stats/overview`
+- **请求方式**: GET
+- **说明**: 获取订单统计概览数据
 
 ## 错误码说明
 
@@ -278,8 +325,29 @@ formData2.append('sign', 'calculated_sign');
 
 ## 注意事项
 
-1. 所有接口都需要进行签名验证
-2. 签名使用MD5算法，生成32位小写字符串
-3. 文件上传仅支持图片格式，最大5MB
-4. 订单号必须唯一，重复提交会返回错误
-5. 建议在生产环境中使用HTTPS协议
+1. **签名验证**: 所有对接接口都需要进行签名验证，签名使用MD5算法，生成32位小写字符串
+2. **文件上传**: 仅支持图片格式（jpg/png/gif），最大5MB
+3. **订单唯一性**: 订单号必须唯一，重复提交会返回错误
+4. **HTTPS**: 建议在生产环境中使用HTTPS协议
+5. **回调重试**: 如果回调通知失败，系统会进行重试（最多3次）
+6. **超时设置**: 建议设置合理的请求超时时间（建议30秒）
+7. **状态轮询**: 如果未收到回调通知，可以通过查询订单接口主动查询订单状态
+
+## 完整对接流程
+
+1. **创建订单**: 调用 `createOrderMain` 接口创建订单，获取支付链接
+2. **用户支付**: 引导用户到支付页面完成支付
+3. **提交凭证**: 调用 `submitOrder` 接口提交支付凭证
+4. **状态查询**: 通过 `queryOrder` 接口查询订单状态
+5. **接收回调**: 处理系统发送的异步回调通知
+6. **订单完成**: 根据最终状态完成业务逻辑
+
+## 测试环境
+
+- **测试地址**: `http://localhost:3000/api/game-recharge`
+- **测试商户**: 可通过管理接口创建测试商户配置
+- **测试国家**: 系统预置了常用国家配置（CN、US、JP等）
+
+## 技术支持
+
+如有技术问题，请联系技术支持团队或查看系统日志获取详细错误信息。

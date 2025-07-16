@@ -39,7 +39,7 @@ exports.getMerchants = async (req, res, next) => {
     
     const { count, rows } = await MerchantConfig.findAndCountAll({
       where: whereClause,
-      attributes: ['id', 'merchant_id', 'api_key', 'status', 'callback_url', 'created_at', 'updated_at'],
+      attributes: ['id', 'merchant_id', 'api_key', 'secret_key', 'status', 'callback_url', 'created_at', 'updated_at'],
       order: [['created_at', 'DESC']],
       limit: limit,
       offset: offset
@@ -185,6 +185,7 @@ exports.updateMerchant = async (req, res, next) => {
         id: merchant.id,
         merchant_id: merchant.merchant_id,
         api_key: merchant.api_key,
+        secret_key: merchant.secret_key,
         callback_url: merchant.callback_url,
         status: merchant.status
       }
@@ -280,7 +281,7 @@ exports.toggleMerchantStatus = async (req, res, next) => {
 
 /**
  * 重新生成商户密钥
- * @route PUT /api/game-recharge/merchants/:id/regenerate-keys
+ * @route PUT /api/game-recharge/merchants/:id/regenerate-key
  */
 exports.regenerateMerchantKeys = async (req, res, next) => {
   const transaction = await sequelize.transaction();
@@ -315,14 +316,106 @@ exports.regenerateMerchantKeys = async (req, res, next) => {
       msg: '密钥重新生成成功',
       data: {
         id: merchant.id,
-        api_key: merchant.api_key,
-        secret_key: merchant.secret_key
+        api_key: api_key,
+        secret_key: secret_key
       }
     });
     
   } catch (error) {
     await transaction.rollback();
     console.error('重新生成密钥失败:', error);
+    next(error);
+  }
+};
+
+/**
+ * 重新生成商户API密钥
+ * @route PUT /api/game-recharge/merchants/:id/regenerate-api-key
+ */
+exports.regenerateApiKey = async (req, res, next) => {
+  const transaction = await sequelize.transaction();
+  
+  try {
+    const { id } = req.params;
+    
+    // 查找商户
+    const merchant = await MerchantConfig.findByPk(id, { transaction });
+    
+    if (!merchant) {
+      return res.status(404).json({
+        status: 'error',
+        msg: '商户不存在',
+        code: 404
+      });
+    }
+    
+    // 生成新的API密钥
+    const api_key = generateApiKey();
+    
+    await merchant.update({
+      api_key
+    }, { transaction });
+    
+    await transaction.commit();
+    
+    res.json({
+      status: 'success',
+      msg: 'API密钥重新生成成功',
+      data: {
+        id: merchant.id,
+        api_key: api_key
+      }
+    });
+    
+  } catch (error) {
+    await transaction.rollback();
+    console.error('重新生成API密钥失败:', error);
+    next(error);
+  }
+};
+
+/**
+ * 重新生成商户签名密钥
+ * @route PUT /api/game-recharge/merchants/:id/regenerate-secret-key
+ */
+exports.regenerateSecretKey = async (req, res, next) => {
+  const transaction = await sequelize.transaction();
+  
+  try {
+    const { id } = req.params;
+    
+    // 查找商户
+    const merchant = await MerchantConfig.findByPk(id, { transaction });
+    
+    if (!merchant) {
+      return res.status(404).json({
+        status: 'error',
+        msg: '商户不存在',
+        code: 404
+      });
+    }
+    
+    // 生成新的签名密钥
+    const secret_key = generateSecretKey();
+    
+    await merchant.update({
+      secret_key
+    }, { transaction });
+    
+    await transaction.commit();
+    
+    res.json({
+      status: 'success',
+      msg: '签名密钥重新生成成功',
+      data: {
+        id: merchant.id,
+        secret_key: secret_key
+      }
+    });
+    
+  } catch (error) {
+    await transaction.rollback();
+    console.error('重新生成签名密钥失败:', error);
     next(error);
   }
 };
