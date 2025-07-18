@@ -625,7 +625,9 @@ exports.createOrderMain = async (req, res, next) => {
     
     // 生成平台订单号和支付链接
     const platform_order_id = generatePlatformOrderId();
-    const pay_url = `https://cashier.example.com/pay/${platform_order_id}`;
+    // 修改为指向我们自己的收银台页面
+    const baseUrl = process.env.CASHIER_BASE_URL || 'http://localhost:3000';
+    const pay_url = `${baseUrl}/cashier.html?order=${platform_order_id}`;
     
     // 创建订单
     const order = await GameRechargeOrder.create({

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>收银台 - 游戏充值平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .cashier-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .cashier-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .cashier-header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .cashier-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .cashier-content {
+            padding: 30px;
+        }
+        
+        .order-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .order-info h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .info-label {
+            color: #666;
+        }
+        
+        .info-value {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .amount {
+            font-size: 28px;
+            color: #e74c3c;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .payment-section {
+            margin-top: 25px;
+        }
+        
+        .payment-section h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-upload input[type=file] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .file-upload-label {
+            display: block;
+            padding: 12px;
+            border: 2px dashed #ccc;
+            border-radius: 6px;
+            text-align: center;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .file-upload-label:hover {
+            border-color: #4facfe;
+            color: #4facfe;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status-message {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="cashier-container">
+        <div class="cashier-header">
+            <h1>收银台</h1>
+            <p>安全快捷的充值服务</p>
+        </div>
+        
+        <div class="cashier-content">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>正在加载订单信息...</p>
+            </div>
+            
+            <div id="main-content" class="hidden">
+                <div class="order-info">
+                    <h3>订单信息</h3>
+                    <div class="info-row">
+                        <span class="info-label">订单号:</span>
+                        <span class="info-value" id="order-id">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">商户:</span>
+                        <span class="info-value" id="merchant-name">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">国家/地区:</span>
+                        <span class="info-value" id="country-name">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">状态:</span>
+                        <span class="info-value" id="order-status">-</span>
+                    </div>
+                    <div class="amount" id="order-amount">¥ 0.00</div>
+                </div>
+                
+                <div id="status-message"></div>
+                
+                <div id="payment-form" class="payment-section">
+                    <h4>提交支付凭证</h4>
+                    <form id="payment-form-element">
+                        <div class="form-group">
+                            <label for="actual-amount">实际支付金额 (可选)</label>
+                            <input type="number" id="actual-amount" name="actual_amount" step="0.01" placeholder="请输入实际支付的金额">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="callback-str">支付说明 (文字凭证)</label>
+                            <textarea id="callback-str" name="callback_str" rows="3" placeholder="请描述您的支付方式和相关信息，例如：通过支付宝转账，交易号：xxx"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>或上传支付凭证图片</label>
+                            <div class="file-upload">
+                                <input type="file" id="callback-img" name="callback_img" accept="image/*">
+                                <label for="callback-img" class="file-upload-label">
+                                    <span id="file-label-text">点击选择图片文件 (支持 JPG, PNG, GIF，最大5MB)</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="submit-btn" id="submit-btn">提交支付凭证</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 获取URL参数
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        
+        // 显示状态消息
+        function showMessage(message, type = 'info') {
+            const messageDiv = document.getElementById('status-message');
+            messageDiv.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
+        }
+        
+        // 加载订单信息
+        async function loadOrderInfo() {
+            const platformOrderId = getUrlParameter('order');
+            
+            if (!platformOrderId) {
+                showMessage('缺少订单参数', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/game-recharge/cashier/${platformOrderId}`);
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // 填充订单信息
+                    document.getElementById('order-id').textContent = data.data.order_id;
+                    document.getElementById('merchant-name').textContent = data.data.merchant_name;
+                    document.getElementById('country-name').textContent = data.data.country_name;
+                    document.getElementById('order-status').textContent = data.data.status_text;
+                    document.getElementById('order-amount').textContent = `${data.data.currency} ${data.data.amount.toFixed(2)}`;
+                    
+                    // 根据订单状态显示不同内容
+                    if (data.data.status === 0) {
+                        // 待付款状态，显示支付表单
+                        document.getElementById('payment-form').style.display = 'block';
+                    } else if (data.data.status === 1) {
+                        // 已提交凭证状态
+                        showMessage('支付凭证已提交，请等待审核', 'info');
+                        document.getElementById('payment-form').style.display = 'none';
+                    } else if (data.data.status >= 10) {
+                        // 成功状态
+                        showMessage('充值已完成！', 'success');
+                        document.getElementById('payment-form').style.display = 'none';
+                    } else {
+                        // 其他状态
+                        showMessage(data.data.status_text, 'error');
+                        document.getElementById('payment-form').style.display = 'none';
+                    }
+                    
+                    // 显示主要内容
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('main-content').classList.remove('hidden');
+                } else {
+                    showMessage(data.msg || '加载订单信息失败', 'error');
+                }
+            } catch (error) {
+                console.error('加载订单信息失败:', error);
+                showMessage('网络错误，请稍后重试', 'error');
+            }
+        }
+        
+        // 提交支付凭证
+        async function submitPayment(event) {
+            event.preventDefault();
+            
+            const platformOrderId = getUrlParameter('order');
+            const submitBtn = document.getElementById('submit-btn');
+            const callbackStr = document.getElementById('callback-str').value.trim();
+            const callbackImg = document.getElementById('callback-img').files[0];
+            const actualAmount = document.getElementById('actual-amount').value;
+            
+            // 验证输入
+            if (!callbackStr && !callbackImg) {
+                showMessage('请提供支付凭证（文字说明或图片）', 'error');
+                return;
+            }
+            
+            // 禁用提交按钮
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('platform_order_id', platformOrderId);
+                
+                if (callbackStr) {
+                    formData.append('callback_str', callbackStr);
+                }
+                
+                if (callbackImg) {
+                    formData.append('callback_img', callbackImg);
+                }
+                
+                if (actualAmount) {
+                    formData.append('actual_amount', actualAmount);
+                }
+                
+                const response = await fetch('/api/game-recharge/cashier/submit-payment', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showMessage(data.msg, 'success');
+                    document.getElementById('payment-form').style.display = 'none';
+                    // 更新订单状态
+                    document.getElementById('order-status').textContent = data.data.status_text;
+                } else {
+                    showMessage(data.msg || '提交失败', 'error');
+                }
+            } catch (error) {
+                console.error('提交支付凭证失败:', error);
+                showMessage('网络错误，请稍后重试', 'error');
+            } finally {
+                // 恢复提交按钮
+                submitBtn.disabled = false;
+                submitBtn.textContent = '提交支付凭证';
+            }
+        }
+        
+        // 文件选择处理
+        document.getElementById('callback-img').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const labelText = document.getElementById('file-label-text');
+            
+            if (file) {
+                labelText.textContent = `已选择: ${file.name}`;
+            } else {
+                labelText.textContent = '点击选择图片文件 (支持 JPG, PNG, GIF，最大5MB)';
+            }
+        });
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOrderInfo();
+            
+            // 绑定表单提交事件
+            document.getElementById('payment-form-element').addEventListener('submit', submitPayment);
+        });
+    </script>
+</body>
+</html>

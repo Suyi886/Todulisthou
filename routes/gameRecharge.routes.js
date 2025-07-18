@@ -7,6 +7,7 @@ const merchantController = require('../controllers/gameRecharge/merchant.control
 const countryController = require('../controllers/gameRecharge/country.controller');
 const statsController = require('../controllers/gameRecharge/stats.controller');
 const orderController = require('../controllers/gameRecharge/order.controller');
+const cashierController = require('../controllers/gameRecharge/cashier.controller');
 
 // 配置文件上传
 const storage = multer.diskStorage({
@@ -280,5 +281,35 @@ router.delete('/orders/:order_id', orderController.deleteOrder);
  * @access Public
  */
 router.post('/orders/batch', orderController.batchProcessOrders);
+
+// ==================== 收银台相关路由 ====================
+
+/**
+ * @route GET /api/game-recharge/cashier/:platform_order_id
+ * @desc 获取收银台页面信息
+ * @access Public
+ */
+router.get('/cashier/:platform_order_id', cashierController.getCashierInfo);
+
+/**
+ * @route POST /api/game-recharge/cashier/submit-payment
+ * @desc 在收银台提交支付凭证
+ * @access Public
+ */
+router.post('/cashier/submit-payment', upload.single('callback_img'), cashierController.submitPayment);
+
+/**
+ * @route GET /api/game-recharge/cashier/status/:platform_order_id
+ * @desc 获取订单支付状态
+ * @access Public
+ */
+router.get('/cashier/status/:platform_order_id', cashierController.getPaymentStatus);
+
+/**
+ * @route GET /api/game-recharge/cashier/redirect/:platform_order_id
+ * @desc 处理支付完成后的页面跳转
+ * @access Public
+ */
+router.get('/cashier/redirect/:platform_order_id', cashierController.handlePaymentRedirect);
 
 module.exports = router;
